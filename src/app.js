@@ -1,45 +1,23 @@
-import express from 'express';
+import express from 'express'
 import ProductManager from './ProductManager.js';
 
-const app = express();
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-
+const app = express()
 const productManager = new ProductManager('./productos.json');
 
+app.use(express.json())
+app.use(express.urlencoded({extended:true}))
+
 app.get('/products', async (req, res) => {
-    try {
-        const limit = req.query.limit;
+    const products = await productManager.getProducts()
 
-        const products = await productManager.getProducts();
-
-        if (limit) {
-            const limitedProducts = products.slice(0, limit);
-            res.json(limitedProducts);
-        } else {
-            res.json(products);
-        }
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: 'Error al obtener los productos' });
-    }
+    res.json({ products })
 });
 
-app.get('/products/:pid', async (req, res) => {
-    try {
-        const { pid } = req.params;
-
-        const product = await productManager.getProductById(parseInt(pid));
-
-        if (product) {
-            res.json(product);
-        } else {
-            res.status(404).json({ error: 'Producto no encontrado' });
-        }
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: 'Error al obtener el producto' });
-    }
+app.post('/products', async (req, res) => {
+    const obj = req.body
+    console.log('Informacion',obj);
+    const newProduct = await productManager.createProduct(obj)
+    res.json({ message: 'Producto creado', product: newProduct})
 });
 
 app.listen(8080, () => {
